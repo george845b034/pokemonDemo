@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>範例</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <style>
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // 初始化地圖
+        var map = L.map('map', {
+            zoomControl: false, // 移除縮放控制按鈕
+            attributionControl: false // 移除Attribution控制按鈕
+        });
+    
+        // 添加底圖層
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    
+        // 添加妙蛙種子圖標
+        var pokemonIcon = L.icon({
+            iconUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/1.png',
+            iconSize: [64, 64],
+            iconAnchor: [32, 64],
+            popupAnchor: [0, -64]
+        });
+    
+        // 添加妙蛙種子標記
+        var pokemonMarker = L.marker([25.0391667, 121.525], { icon: pokemonIcon }).addTo(map);
+    
+        // 定位當前的位置
+        function locateAndUpdate() {
+            map.locate({ setView: true, maxZoom: 19 });
+        }
+
+        var firstLocationFound = false;
+
+        map.on('locationfound', function(e) {
+            console.log('locationfound: ', e.latlng);
+            // 調整地圖視圖到定位位置
+            map.setView(e.latlng, 19);
+
+            // 更新寶可夢標記位置
+            pokemonMarker.setLatLng(e.latlng);
+
+            // 只在第一次定位時生成其他的寶可夢
+            if (!firstLocationFound) {
+                // 在附近生成五隻其他的寶可夢
+                for (var i = 2; i <= 6; i++) {
+                    // 生成一個附近的隨機位置
+                    var nearbyLat = e.latlng.lat + Math.random() * 0.001 - 0.0005;
+                    var nearbyLng = e.latlng.lng + Math.random() * 0.001 - 0.0005;
+
+                    // 添加寶可夢圖標
+                    var tempIcon = L.icon({
+                        iconUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites/sprites/pokemon/other/official-artwork/' + i + '.png',
+                        iconSize: [64, 64],
+                        iconAnchor: [32, 64],
+                        popupAnchor: [0, -64]
+                    });
+
+                    // 添加怪標記
+                    var tempMarker = L.marker([nearbyLat, nearbyLng], { icon: tempIcon }).addTo(map);
+                }
+
+                firstLocationFound = true;
+            }
+
+        });
+
+        // 立即定位並更新位置
+        locateAndUpdate();
+
+        map.on('locationerror', function(e) {
+            alert('定位失敗，原因：' + e.message);
+        });
+    </script>
+</body>
+</html>
